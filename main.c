@@ -64,7 +64,10 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
         SDL_Log("Loading From '%s'",argv[1]);
-        fgets(buf, 1024, config_file);
+        if (fgets(buf, 1024, config_file) == nullptr) {
+            SDL_Log("Error in file structure");
+            exit(1);
+        }
         char *token = strtok(buf, ",");
         if (token == nullptr) {
             SDL_Log("Error in file strcture");
@@ -110,7 +113,10 @@ int main(int argc, char *argv[]) {
         config_file = fopen(buf, "r");
         if (config_file != nullptr) {
             SDL_Log("Loading From '%s'",buf);
-            fgets(buf, 1024, config_file);
+            if (fgets(buf, 1024, config_file) == nullptr) {
+                SDL_Log("Error in file structure");
+                exit(1);
+            }
             char *token = strtok(buf, ",");
             if (token == nullptr) {
                 SDL_Log("Error in file strcture");
@@ -163,7 +169,7 @@ int main(int argc, char *argv[]) {
 
     if (!SDL_CreateWindowAndRenderer("EL creatura", width, height,
                                 SDL_WINDOW_RESIZABLE | SDL_WINDOW_TRANSPARENT |
-                                SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY, &window,
+                                SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY | SDL_WINDOW_NOT_FOCUSABLE, &window,
                                 &renderer)) {
         SDL_Log("Couldnt Create Window and Renderer : '%s'",SDL_GetError());
         exit(1);
