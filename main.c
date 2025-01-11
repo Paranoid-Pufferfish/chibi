@@ -8,8 +8,9 @@ SDL_Window *window;
 SDL_Renderer *renderer;
 IMG_Animation *animation = nullptr;
 SDL_Texture **Frames = nullptr;
-int width, height,pos_x,pos_y;
+int width, height, pos_x, pos_y;
 int transition = 1;
+float aspect_ratio;
 char chibi_path[1024] = "../Sitting.png";
 static const SDL_DialogFileFilter filters[] = {
     {"PNG images", "png"},
@@ -38,15 +39,17 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
             SDL_Log("Chibi not found, Quitting. Goodbye");
             exit(1);
         }
-        SDL_Log("Loaded '%s'",*filelist);
+        SDL_Log("Loaded '%s'", *filelist);
         Frames = calloc(animation->count, sizeof(SDL_Texture));
         for (int i = 0; i < animation->count; ++i) {
             SDL_DestroyTexture(Frames[i]);
             Frames[i] = SDL_CreateTextureFromSurface(renderer, animation->frames[i]);
             SDL_SetTextureBlendMode(Frames[i],SDL_BLENDMODE_BLEND);
         }
-
-        strcpy(chibi_path,*filelist);
+        aspect_ratio = (float) animation->w / (float) animation->h;
+        SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
+        SDL_SetWindowSize(window, animation->w, animation->h);
+        strcpy(chibi_path, *filelist);
     }
 }
 
@@ -55,15 +58,15 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         if (argv[1][0] == '~') {
             char *home = getenv("HOME");
-            strcpy(buf,home);
-            strcat(buf,argv[1]+1);
+            strcpy(buf, home);
+            strcat(buf, argv[1] + 1);
         }
         config_file = fopen(argv[1], "r");
         if (config_file == nullptr) {
-            SDL_Log("'%s' does not exist",argv[1]);
+            SDL_Log("'%s' does not exist", argv[1]);
             exit(1);
         }
-        SDL_Log("Loading From '%s'",argv[1]);
+        SDL_Log("Loading From '%s'", argv[1]);
         if (fgets(buf, 1024, config_file) == nullptr) {
             SDL_Log("Error in file structure");
             exit(1);
@@ -79,7 +82,7 @@ int main(int argc, char *argv[]) {
             SDL_Log("Error in file strcture");
             exit(1);
         }
-        height= (int) strtol(token, nullptr, 10);
+        height = (int) strtol(token, nullptr, 10);
         token = strtok(nullptr, ",");
         if (token == nullptr) {
             SDL_Log("Error in file strcture");
@@ -103,16 +106,16 @@ int main(int argc, char *argv[]) {
             SDL_Log("Error in file strcture");
             exit(1);
         }
-        strcpy(chibi_path,token);
+        strcpy(chibi_path, token);
         chibi_path[strcspn(chibi_path, "\n")] = 0;
         fclose(config_file);
     } else {
         char *home = getenv("HOME");
-        strcpy(buf,home);
-        strcat(buf,"/.config/el-creatura/config.txt");
+        strcpy(buf, home);
+        strcat(buf, "/.config/el-creatura/config.txt");
         config_file = fopen(buf, "r");
         if (config_file != nullptr) {
-            SDL_Log("Loading From '%s'",buf);
+            SDL_Log("Loading From '%s'", buf);
             if (fgets(buf, 1024, config_file) == nullptr) {
                 SDL_Log("Error in file structure");
                 exit(1);
@@ -155,11 +158,10 @@ int main(int argc, char *argv[]) {
                 SDL_Log("Error in file strcture");
                 exit(1);
             }
-            strcpy(chibi_path,token);
+            strcpy(chibi_path, token);
             chibi_path[strcspn(chibi_path, "\n")] = 0;
             fclose(config_file);
-        }
-        else {
+        } else {
             SDL_Log("Loading Defaults");
             width = height = 200;
             pos_x = 1920 - 200;
@@ -168,17 +170,18 @@ int main(int argc, char *argv[]) {
     }
 
     if (!SDL_CreateWindowAndRenderer("EL creatura", width, height,
-                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_TRANSPARENT |
-                                SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY | SDL_WINDOW_NOT_FOCUSABLE, &window,
-                                &renderer)) {
-        SDL_Log("Couldnt Create Window and Renderer : '%s'",SDL_GetError());
+                                     SDL_WINDOW_RESIZABLE | SDL_WINDOW_TRANSPARENT |
+                                     SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY |
+                                     SDL_WINDOW_NOT_FOCUSABLE, &window,
+                                     &renderer)) {
+        SDL_Log("Couldnt Create Window and Renderer : '%s'", SDL_GetError());
         exit(1);
     }
     if (!SDL_SetWindowPosition(window, pos_x, pos_y)) {
-        SDL_Log("Couldnt Move Window : '%s'",SDL_GetError());
+        SDL_Log("Couldnt Move Window : '%s'", SDL_GetError());
         exit(1);
     }
-    SDL_Log("Created Window %dx%d at %dx%d",width,height,pos_x,pos_y);
+    SDL_Log("Created Window %dx%d at %dx%d", width, height, pos_x, pos_y);
 
 
     animation = IMG_LoadAnimation(chibi_path);
@@ -186,7 +189,7 @@ int main(int argc, char *argv[]) {
         SDL_Log("Chibi not found, Quitting. Goodbye");
         exit(1);
     }
-    SDL_Log("Loaded '%s'",chibi_path);
+    SDL_Log("Loaded '%s'", chibi_path);
     Frames = calloc(animation->count, sizeof(SDL_Texture));
     for (int i = 0; i < animation->count; ++i) {
         Frames[i] = SDL_CreateTextureFromSurface(renderer, animation->frames[i]);
@@ -199,6 +202,7 @@ int main(int argc, char *argv[]) {
     int current_frame_idx = 0;
     int current_transparency_step = 0;
     unsigned int lastTime = 0, currentTime;
+    aspect_ratio = (float) width / (float) height;
     while (!quit) {
         SDL_RenderClear(renderer);
         if (transition == 1) {
@@ -234,7 +238,7 @@ int main(int argc, char *argv[]) {
                         if (event.button.clicks == 2 && event.button.button == SDL_BUTTON_LEFT)
                             SDL_ShowOpenFileDialog(callback, nullptr, window, filters, 6, nullptr, 0);
                         if (event.button.button == SDL_BUTTON_MIDDLE)
-                            SDL_SetWindowAspectRatio(window, 1, 1);
+                            SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
                         if (event.button.button == SDL_BUTTON_RIGHT) {
                             SDL_SetWindowBordered(window, !bordered);
                             bordered = !bordered;
@@ -256,16 +260,16 @@ int main(int argc, char *argv[]) {
             current_frame_idx = 0;
         }
     }
-    SDL_GetWindowSize(window,&width,&height);
-    SDL_GetWindowPosition(window,&pos_x,&pos_y);
+    SDL_GetWindowSize(window, &width, &height);
+    SDL_GetWindowPosition(window, &pos_x, &pos_y);
     char *home = getenv("HOME");
-    strcpy(buf,home);
-    strcat(buf,"/.config/el-creatura");
+    strcpy(buf, home);
+    strcat(buf, "/.config/el-creatura");
     SDL_CreateDirectory(buf);
-    strcat(buf,"/config.txt");
-    config_file = fopen(buf,"w");
-    sprintf(buf,"%d,%d,%d,%d,%d,%s",width,height,pos_x,pos_y,transition,chibi_path);
-    fputs(buf,config_file);
+    strcat(buf, "/config.txt");
+    config_file = fopen(buf, "w");
+    sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
+    fputs(buf, config_file);
     fclose(config_file);
     IMG_FreeAnimation(animation);
     free(Frames);
