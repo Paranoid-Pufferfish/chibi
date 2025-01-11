@@ -48,7 +48,7 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         }
         aspect_ratio = (float) animation->w / (float) animation->h;
         SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
-        SDL_SetWindowSize(window, animation->w, animation->h);
+        SDL_SetWindowSize(window, SDL_min(animation->w,200 * aspect_ratio), SDL_min(animation->h,200));
         strcpy(chibi_path, *filelist);
     }
 }
