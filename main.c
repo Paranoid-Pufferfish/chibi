@@ -36,7 +36,7 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         IMG_FreeAnimation(animation);
         animation = IMG_LoadAnimation(*filelist);
         if (animation == nullptr) {
-            SDL_Log("Chibi not found, Quitting. Goodbye");
+            SDL_Log("Chibi not found, Quitting.'%s', Bailing Out, Goodbye!",SDL_GetError());
             exit(1);
         }
         SDL_Log("Loaded '%s'", *filelist);
@@ -181,11 +181,11 @@ int main(int argc, char *argv[]) {
                                      SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY |
                                      SDL_WINDOW_NOT_FOCUSABLE, &window,
                                      &renderer)) {
-        SDL_Log("Couldnt Create Window and Renderer : '%s'", SDL_GetError());
+        SDL_Log("Couldnt Create Window and Renderer. '%s', Bailing Out, Goodbye!",SDL_GetError());
         exit(1);
     }
     if (!SDL_SetWindowPosition(window, pos_x, pos_y)) {
-        SDL_Log("Couldnt Move Window : '%s'", SDL_GetError());
+        SDL_Log("Couldnt Move Window. '%s', Bailing Out, Goodbye!",SDL_GetError());
         exit(1);
     }
     SDL_Log("Created Window %dx%d at %dx%d", width, height, pos_x, pos_y);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 
     animation = IMG_LoadAnimation(chibi_path);
     if (animation == nullptr) {
-        SDL_Log("Chibi not found, Quitting. Goodbye");
+        SDL_Log("Chibi not found. '%s', Bailing Out, Goodbye!",SDL_GetError());
         exit(1);
     }
     SDL_Log("Loaded '%s'", chibi_path);
