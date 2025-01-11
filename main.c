@@ -110,9 +110,16 @@ int main(int argc, char *argv[]) {
         chibi_path[strcspn(chibi_path, "\n")] = 0;
         fclose(config_file);
     } else {
+#ifdef SDL_PLATFORM_UNIX
         char *home = getenv("HOME");
         strcpy(buf, home);
         strcat(buf, "/.config/el-creatura/config.txt");
+#else
+        char *home = getenv("LocalAppData");
+        strcpy(buf, home);
+        strcat(buf, ".el-creatura/config.txt");
+#endif
+
         config_file = fopen(buf, "r");
         if (config_file != nullptr) {
             SDL_Log("Loading From '%s'", buf);
@@ -262,11 +269,19 @@ int main(int argc, char *argv[]) {
     }
     SDL_GetWindowSize(window, &width, &height);
     SDL_GetWindowPosition(window, &pos_x, &pos_y);
+#ifdef SDL_PLATFORM_UNIX
     char *home = getenv("HOME");
     strcpy(buf, home);
     strcat(buf, "/.config/el-creatura");
     SDL_CreateDirectory(buf);
     strcat(buf, "/config.txt");
+#else
+    char *home = getenv("LocalAppData");
+    strcpy(buf, home);
+    strcat(buf, "/el-creatura");
+    SDL_CreateDirectory(buf);
+    strcat(buf, "/config.txt");
+#endif
     config_file = fopen(buf, "w");
     sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
     fputs(buf, config_file);
