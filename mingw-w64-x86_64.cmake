@@ -7,7 +7,7 @@
 # This is free and unencumbered software released into the public domain.
 
 set(CMAKE_SYSTEM_NAME Windows)
-set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
+# set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
 add_compile_definitions(SDL_PLATFORM_WINDOWS)
 # cross compilers to use for C, C++ and Fortran
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
