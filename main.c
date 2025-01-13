@@ -12,6 +12,13 @@ int width, height, pos_x, pos_y;
 int transition = 1;
 float aspect_ratio;
 char chibi_path[1024] = "../Sitting.png";
+
+SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask,
+                                  Uint32 Bmask, Uint32 Amask) {
+    return SDL_CreateSurface(width, height,
+                             SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask));
+}
+
 static const SDL_DialogFileFilter filters[] = {
     {"PNG images", "png"},
     {"JPEG images", "jpg;jpeg"},
@@ -36,7 +43,7 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         IMG_FreeAnimation(animation);
         animation = IMG_LoadAnimation(*filelist);
         if (animation == nullptr) {
-            SDL_Log("Chibi not found, Quitting.'%s', Bailing Out, Goodbye!",SDL_GetError());
+            SDL_Log("Chibi not found, Quitting.'%s', Bailing Out, Goodbye!", SDL_GetError());
             exit(1);
         }
         SDL_Log("Loaded '%s'", *filelist);
@@ -48,7 +55,8 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         }
         aspect_ratio = (float) animation->w / (float) animation->h;
         SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
-        SDL_SetWindowSize(window, SDL_min(animation->w,200 * aspect_ratio), SDL_min(animation->h,200));
+        SDL_SetWindowSize(window, SDL_min(animation->w, 200 * aspect_ratio), SDL_min(animation->h, 200));
+        SDL_SetWindowShape(window, animation->frames[0]);
         strcpy(chibi_path, *filelist);
     }
 }
@@ -181,19 +189,17 @@ int main(int argc, char *argv[]) {
                                      SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY |
                                      SDL_WINDOW_NOT_FOCUSABLE, &window,
                                      &renderer)) {
-        SDL_Log("Couldnt Create Window and Renderer. '%s', Bailing Out, Goodbye!",SDL_GetError());
+        SDL_Log("Couldnt Create Window and Renderer. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
     if (!SDL_SetWindowPosition(window, pos_x, pos_y)) {
-        SDL_Log("Couldnt Move Window. '%s', Bailing Out, Goodbye!",SDL_GetError());
+        SDL_Log("Couldnt Move Window. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
     SDL_Log("Created Window %dx%d at %dx%d", width, height, pos_x, pos_y);
-
-
     animation = IMG_LoadAnimation(chibi_path);
     if (animation == nullptr) {
-        SDL_Log("Chibi not found. '%s', Bailing Out, Goodbye!",SDL_GetError());
+        SDL_Log("Chibi not found. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
     SDL_Log("Loaded '%s'", chibi_path);
@@ -202,7 +208,6 @@ int main(int argc, char *argv[]) {
         Frames[i] = SDL_CreateTextureFromSurface(renderer, animation->frames[i]);
         SDL_SetTextureBlendMode(Frames[i],SDL_BLENDMODE_BLEND);
     }
-
     SDL_Event event;
     bool quit = false;
     bool bordered = false;
@@ -210,6 +215,7 @@ int main(int argc, char *argv[]) {
     int current_transparency_step = 0;
     unsigned int lastTime = 0, currentTime;
     aspect_ratio = (float) width / (float) height;
+    SDL_SetWindowShape(window, animation->frames[0]);
     while (!quit) {
         SDL_RenderClear(renderer);
         if (transition == 1) {
@@ -221,6 +227,7 @@ int main(int argc, char *argv[]) {
                     for (int j = 0; j < animation->count; ++j) {
                         SDL_SetTextureAlphaMod(Frames[j], 51 * current_transparency_step);
                     }
+
                     lastTime = currentTime;
                 }
             } else if (current_transparency_step < 0) {
@@ -234,7 +241,6 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-
         if (current_frame_idx < animation->count) {
             SDL_RenderTexture(renderer, Frames[current_frame_idx], nullptr, nullptr);
             while (SDL_PollEvent(&event)) {
@@ -256,9 +262,11 @@ int main(int argc, char *argv[]) {
                         break;
                     case SDL_EVENT_WINDOW_MOUSE_LEAVE:
                         current_transparency_step = -5;
+                        break;
                     default: ;
                 }
             }
+
             SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0,SDL_ALPHA_TRANSPARENT_FLOAT);
             SDL_RenderPresent(renderer);
             SDL_Delay(animation->delays[current_frame_idx]);
