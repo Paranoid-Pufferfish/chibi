@@ -11,7 +11,6 @@ SDL_Texture **Frames = nullptr;
 int width, height, pos_x, pos_y;
 int transition = 1;
 float aspect_ratio;
-char buf[1024];
 char chibi_path[1024] = "../Sitting.png";
 static const SDL_DialogFileFilter filters[] = {
     {"PNG images", "png"},
@@ -51,29 +50,11 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
         SDL_SetWindowSize(window, SDL_min(animation->w,200 * aspect_ratio), SDL_min(animation->h,200));
         strcpy(chibi_path, *filelist);
-        SDL_GetWindowSize(window, &width, &height);
-        SDL_GetWindowPosition(window, &pos_x, &pos_y);
-#ifdef SDL_PLATFORM_UNIX
-        char *home = getenv("HOME");
-        strcpy(buf, home);
-        strcat(buf, "/.config/el-creatura");
-        SDL_CreateDirectory(buf);
-        strcat(buf, "/config.txt");
-#else
-        char *home = getenv("LocalAppData");
-        strcpy(buf, home);
-        strcat(buf, "/el-creatura");
-        SDL_CreateDirectory(buf);
-        strcat(buf, "/config.txt");
-#endif
-        config_file = fopen(buf, "w");
-        sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
-        fputs(buf, config_file);
-        fclose(config_file);
     }
 }
 
 int main(int argc, char *argv[]) {
+    char buf[1024];
     if (argc > 1) {
         if (argv[1][0] == '~') {
             char *home = getenv("HOME");
