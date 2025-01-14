@@ -215,7 +215,6 @@ int main(int argc, char *argv[]) {
     int current_transparency_step = 0;
     unsigned int lastTime = 0, currentTime;
     aspect_ratio = (float) width / (float) height;
-    SDL_SetWindowShape(window, animation->frames[0]);
     while (!quit) {
         SDL_RenderClear(renderer);
         if (transition == 1) {
@@ -269,6 +268,7 @@ int main(int argc, char *argv[]) {
 
             SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0,SDL_ALPHA_TRANSPARENT_FLOAT);
             SDL_RenderPresent(renderer);
+            SDL_SetWindowShape(window, animation->frames[current_frame_idx]);
             SDL_Delay(animation->delays[current_frame_idx]);
             current_frame_idx++;
         } else {
