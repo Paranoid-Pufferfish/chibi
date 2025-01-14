@@ -267,8 +267,8 @@ int main(int argc, char *argv[]) {
             }
 
             SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0,SDL_ALPHA_TRANSPARENT_FLOAT);
-            SDL_RenderPresent(renderer);
             SDL_SetWindowShape(window, animation->frames[current_frame_idx]);
+            SDL_RenderPresent(renderer);
             SDL_Delay(animation->delays[current_frame_idx]);
             current_frame_idx++;
         } else {
