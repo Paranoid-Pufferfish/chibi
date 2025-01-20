@@ -12,7 +12,7 @@ int width, height, pos_x, pos_y;
 int transition = 1;
 float aspect_ratio;
 char chibi_path[1024] = "../Sitting.png";
-
+char buf[1024] = {0};
 SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask,
                                   Uint32 Bmask, Uint32 Amask) {
     return SDL_CreateSurface(width, height,
@@ -58,11 +58,33 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         SDL_SetWindowSize(window, SDL_min(animation->w, 200 * aspect_ratio), SDL_min(animation->h, 200));
         SDL_SetWindowShape(window, animation->frames[0]);
         strcpy(chibi_path, *filelist);
+        SDL_GetWindowSize(window, &width, &height);
+        SDL_GetWindowPosition(window, &pos_x, &pos_y);
+#ifdef SDL_PLATFORM_UNIX
+        char *home = getenv("HOME");
+        strcpy(buf, home);
+        strcat(buf, "/.config/el-creatura");
+        SDL_CreateDirectory(buf);
+        strcat(buf, "/config.txt");
+#else
+        char *home = getenv("LocalAppData");
+        strcpy(buf, home);
+        strcat(buf, "/el-creatura");
+        SDL_CreateDirectory(buf);
+        strcat(buf, "/config.txt");
+#endif
+        if ((config_file = fopen(buf, "w")) == nullptr){
+            perror("fopen");
+            exit(1);
+        }
+        SDL_Log("Writing to Config File");
+        sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
+        fputs(buf, config_file);
+        fclose(config_file);
     }
 }
 
 int main(int argc, char *argv[]) {
-    char buf[1024];
     if (argc > 1) {
         if (argv[1][0] == '~') {
             char *home = getenv("HOME");
@@ -222,11 +244,9 @@ int main(int argc, char *argv[]) {
                 currentTime = SDL_GetTicks();
                 if (currentTime > lastTime + 100) {
                     current_transparency_step--;
-
                     for (int j = 0; j < animation->count; ++j) {
                         SDL_SetTextureAlphaMod(Frames[j], 51 * current_transparency_step);
                     }
-
                     lastTime = currentTime;
                 }
             } else if (current_transparency_step < 0) {
@@ -290,7 +310,11 @@ int main(int argc, char *argv[]) {
     SDL_CreateDirectory(buf);
     strcat(buf, "/config.txt");
 #endif
-    config_file = fopen(buf, "w");
+    if ((config_file = fopen(buf, "w")) == nullptr){
+        perror("fopen");
+        exit(1);
+    }
+    SDL_Log("Writing to Config File");
     sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
     fputs(buf, config_file);
     fclose(config_file);
