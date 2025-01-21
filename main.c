@@ -20,11 +20,11 @@ SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth
 }
 
 static const SDL_DialogFileFilter filters[] = {
+    {"All images", "png;jpg;jpeg;gif;webp"},
     {"PNG images", "png"},
     {"JPEG images", "jpg;jpeg"},
     {"GIF images", "gif"},
     {"Webp images", "webp"},
-    {"All images", "png;jpg;jpeg;gif;webp"},
     {"All files", "*"}
 };
 
