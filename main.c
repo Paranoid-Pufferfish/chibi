@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-
+#define MAX_WINDOWS 1
 FILE *config_file;
-SDL_Window *window;
-SDL_Renderer *renderer;
-IMG_Animation *animation = nullptr;
-SDL_Texture **Frames = nullptr;
+SDL_Window *(window)[MAX_WINDOWS];
+SDL_Renderer *(renderer)[MAX_WINDOWS];
+IMG_Animation *(animation)[MAX_WINDOWS];
+SDL_Texture **(Frames)[MAX_WINDOWS];
 int width, height, pos_x, pos_y;
 int transition = 1;
 float aspect_ratio;
@@ -40,26 +40,26 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
 
     if (*filelist) {
         SDL_Log("Loading '%s'", *filelist);
-        IMG_FreeAnimation(animation);
-        animation = IMG_LoadAnimation(*filelist);
-        if (animation == nullptr) {
+        IMG_FreeAnimation(animation[0]);
+        animation[0] = IMG_LoadAnimation(*filelist);
+        if (animation[0] == nullptr) {
             SDL_Log("Chibi not found, Quitting.'%s', Bailing Out, Goodbye!", SDL_GetError());
             exit(1);
         }
         SDL_Log("Loaded '%s'", *filelist);
-        Frames = calloc(animation->count, sizeof(SDL_Texture));
-        for (int i = 0; i < animation->count; ++i) {
-            SDL_DestroyTexture(Frames[i]);
-            Frames[i] = SDL_CreateTextureFromSurface(renderer, animation->frames[i]);
-            SDL_SetTextureBlendMode(Frames[i],SDL_BLENDMODE_BLEND);
+        Frames[0] = calloc(animation[0]->count, sizeof(SDL_Texture));
+        for (int i = 0; i < animation[0]->count; ++i) {
+            SDL_DestroyTexture(Frames[0][i]);
+            Frames[0][i] = SDL_CreateTextureFromSurface(renderer[0], animation[0]->frames[i]);
+            SDL_SetTextureBlendMode(Frames[0][i],SDL_BLENDMODE_BLEND);
         }
-        aspect_ratio = (float) animation->w / (float) animation->h;
-        SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
-        SDL_SetWindowSize(window, SDL_min(animation->w, 200 * aspect_ratio), SDL_min(animation->h, 200));
-        SDL_SetWindowShape(window, animation->frames[0]);
+        aspect_ratio = (float) animation[0]->w / (float) animation[0]->h;
+        SDL_SetWindowAspectRatio(window[0], aspect_ratio, aspect_ratio);
+        SDL_SetWindowSize(window[0], SDL_min(animation[0]->w, 200 * aspect_ratio), SDL_min(animation[0]->h, 200));
+        SDL_SetWindowShape(window[0], animation[0]->frames[0]);
         strcpy(chibi_path, *filelist);
-        SDL_GetWindowSize(window, &width, &height);
-        SDL_GetWindowPosition(window, &pos_x, &pos_y);
+        SDL_GetWindowSize(window[0], &width, &height);
+        SDL_GetWindowPosition(window[0], &pos_x, &pos_y);
 #ifdef SDL_PLATFORM_UNIX
         char *home = getenv("HOME");
         strcpy(buf, home);
@@ -84,6 +84,7 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
     }
 }
 
+// ReSharper disable once CppDFAConstantFunctionResult
 int main(int argc, char *argv[]) {
     if (argc > 1) {
         if (argv[1][0] == '~') {
@@ -209,26 +210,26 @@ int main(int argc, char *argv[]) {
     if (!SDL_CreateWindowAndRenderer("EL creatura", width, height,
                                      SDL_WINDOW_RESIZABLE | SDL_WINDOW_TRANSPARENT |
                                      SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY |
-                                     SDL_WINDOW_NOT_FOCUSABLE, &window,
-                                     &renderer)) {
+                                     SDL_WINDOW_NOT_FOCUSABLE, &window[0],
+                                     &renderer[0])) {
         SDL_Log("Couldnt Create Window and Renderer. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
-    if (!SDL_SetWindowPosition(window, pos_x, pos_y)) {
+    if (!SDL_SetWindowPosition(window[0], pos_x, pos_y)) {
         SDL_Log("Couldnt Move Window. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
     SDL_Log("Created Window %dx%d at %dx%d", width, height, pos_x, pos_y);
-    animation = IMG_LoadAnimation(chibi_path);
-    if (animation == nullptr) {
+    animation[0] = IMG_LoadAnimation(chibi_path);
+    if (animation[0] == nullptr) {
         SDL_Log("Chibi not found. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
     SDL_Log("Loaded '%s'", chibi_path);
-    Frames = calloc(animation->count, sizeof(SDL_Texture));
-    for (int i = 0; i < animation->count; ++i) {
-        Frames[i] = SDL_CreateTextureFromSurface(renderer, animation->frames[i]);
-        SDL_SetTextureBlendMode(Frames[i],SDL_BLENDMODE_BLEND);
+    Frames[0] = calloc(animation[0]->count, sizeof(SDL_Texture));
+    for (int i = 0; i < animation[0]->count; ++i) {
+        Frames[0][i] = SDL_CreateTextureFromSurface(renderer[0], animation[0]->frames[i]);
+        SDL_SetTextureBlendMode(Frames[0][i],SDL_BLENDMODE_BLEND);
     }
     SDL_Event event;
     bool quit = false;
@@ -238,14 +239,14 @@ int main(int argc, char *argv[]) {
     unsigned int lastTime = 0, currentTime;
     aspect_ratio = (float) width / (float) height;
     while (!quit) {
-        SDL_RenderClear(renderer);
+        SDL_RenderClear(renderer[0]);
         if (transition == 1) {
             if (current_transparency_step > 0) {
                 currentTime = SDL_GetTicks();
                 if (currentTime > lastTime + 100) {
                     current_transparency_step--;
-                    for (int j = 0; j < animation->count; ++j) {
-                        SDL_SetTextureAlphaMod(Frames[j], 51 * current_transparency_step);
+                    for (int j = 0; j < animation[0]->count; ++j) {
+                        SDL_SetTextureAlphaMod(Frames[0][j], 51 * current_transparency_step);
                     }
                     lastTime = currentTime;
                 }
@@ -253,26 +254,26 @@ int main(int argc, char *argv[]) {
                 currentTime = SDL_GetTicks();
                 if (currentTime > lastTime + 100) {
                     current_transparency_step++;
-                    for (int j = 0; j < animation->count; ++j) {
-                        SDL_SetTextureAlphaMod(Frames[j], 51 * (5 + current_transparency_step));
+                    for (int j = 0; j < animation[0]->count; ++j) {
+                        SDL_SetTextureAlphaMod(Frames[0][j], 51 * (5 + current_transparency_step));
                     }
                     lastTime = currentTime;
                 }
             }
         }
-        if (current_frame_idx < animation->count) {
-            SDL_RenderTexture(renderer, Frames[current_frame_idx], nullptr, nullptr);
+        if (current_frame_idx < animation[0]->count) {
+            SDL_RenderTexture(renderer[0], Frames[0][current_frame_idx], nullptr, nullptr);
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
                     case SDL_EVENT_QUIT: quit = true;
                         break;
                     case SDL_EVENT_MOUSE_BUTTON_UP:
                         if (event.button.clicks == 2 && event.button.button == SDL_BUTTON_LEFT)
-                            SDL_ShowOpenFileDialog(callback, nullptr, window, filters, 6, nullptr, 0);
+                            SDL_ShowOpenFileDialog(callback, nullptr, window[0], filters, 6, nullptr, 0);
                         if (event.button.button == SDL_BUTTON_MIDDLE)
-                            SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
+                            SDL_SetWindowAspectRatio(window[0], aspect_ratio, aspect_ratio);
                         if (event.button.button == SDL_BUTTON_RIGHT) {
-                            SDL_SetWindowBordered(window, !bordered);
+                            SDL_SetWindowBordered(window[0], !bordered);
                             bordered = !bordered;
                         }
                         break;
@@ -286,17 +287,17 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0,SDL_ALPHA_TRANSPARENT_FLOAT);
-            SDL_SetWindowShape(window, animation->frames[current_frame_idx]);
-            SDL_RenderPresent(renderer);
-            SDL_Delay(animation->delays[current_frame_idx]);
+            SDL_SetRenderDrawColorFloat(renderer[0], 0, 0, 0,SDL_ALPHA_TRANSPARENT_FLOAT);
+            SDL_SetWindowShape(window[0], animation[0]->frames[current_frame_idx]);
+            SDL_RenderPresent(renderer[0]);
+            SDL_Delay(animation[0]->delays[current_frame_idx]);
             current_frame_idx++;
         } else {
             current_frame_idx = 0;
         }
     }
-    SDL_GetWindowSize(window, &width, &height);
-    SDL_GetWindowPosition(window, &pos_x, &pos_y);
+    SDL_GetWindowSize(window[0], &width, &height);
+    SDL_GetWindowPosition(window[0], &pos_x, &pos_y);
 #ifdef SDL_PLATFORM_UNIX
     char *home = getenv("HOME");
     strcpy(buf, home);
@@ -318,7 +319,7 @@ int main(int argc, char *argv[]) {
     sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
     fputs(buf, config_file);
     fclose(config_file);
-    IMG_FreeAnimation(animation);
-    free(Frames);
+    IMG_FreeAnimation(animation[0]);
+    free(Frames[0]);
     return 0;
 }
