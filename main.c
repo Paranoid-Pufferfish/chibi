@@ -96,18 +96,14 @@ int main(int argc, char *argv[]) {
     home = getenv("HOME");
     strcpy(temp_cfg_path, home);
     strcat(temp_cfg_path, "/.config/chibi-sdl");
-    strcpy(chibi_path,temp_cfg_path);
     SDL_CreateDirectory(temp_cfg_path);
     strcat(temp_cfg_path, "/.config.tmp");
-    strcat(chibi_path, "/Sitting.png");
 #else
     home = getenv("LocalAppData");
     strcpy(temp_cfg_path, home);
     strcat(temp_cfg_path, "/chibi-sdl");
-    strcpy(chibi_path,temp_cfg_path);
     SDL_CreateDirectory(temp_cfg_path);
     strcat(temp_cfg_path, "/~config.tmp");
-    strcat(chibi_path, "/Sitting.png");
 #endif
     if (!(argc > 1 && strcmp(argv[1], "--append") == 0)) {
         SDL_Log("Parent Process, Launch Subsequent chibis with --append");
