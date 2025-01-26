@@ -17,13 +17,9 @@ char buf[1024] = {0};
 char buf2[1024] = {0};
 char temp_cfg_path[1024] = {0};
 char cfg_path[1024] = {0};
-
-SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask,
-                                  Uint32 Bmask, Uint32 Amask) {
-    return SDL_CreateSurface(width, height,
-                             SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask));
-}
-
+bool volatile wait = true;
+int current_frame_idx;
+bool defaults = false;
 static const SDL_DialogFileFilter filters[] = {
     {"All images", "png;jpg;jpeg;gif;webp"},
     {"PNG images", "png"},
@@ -36,14 +32,17 @@ static const SDL_DialogFileFilter filters[] = {
 static void SDLCALL callback(void *userdata, const char *const*filelist, int filter) {
     if (!filelist) {
         SDL_Log("An error occured: %s", SDL_GetError());
+        wait = false;
         return;
     } else if (!*filelist) {
         SDL_Log("The user did not select any file.");
         SDL_Log("Most likely, the dialog was canceled.");
+        wait = false;
         return;
     }
 
     if (*filelist) {
+        current_frame_idx = 0;
         SDL_Log("Loading '%s'", *filelist);
         IMG_FreeAnimation(animation);
         animation = IMG_LoadAnimation(*filelist);
@@ -86,6 +85,7 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
         sprintf(buf, "%d,%d,%d,%d,%d,%s", width, height, pos_x, pos_y, transition, chibi_path);
         fputs(buf, config_file);
         fclose(config_file);
+        wait = false;
     }
 }
 
@@ -238,6 +238,7 @@ int main(int argc, char *argv[]) {
                 width = height = 200;
                 pos_x = 0;
                 pos_y = 0;
+                defaults = true;
             }
         }
         if (!SDL_CreateWindowAndRenderer("Chibi", width, height,
@@ -257,7 +258,18 @@ int main(int argc, char *argv[]) {
             SDL_Log("Couldnt Create Window and Renderer. '%s', Bailing Out, Goodbye!", SDL_GetError());
             exit(1);
         }
+        wait = true;
         SDL_ShowOpenFileDialog(callback, nullptr, window, filters, 6, nullptr, 0);
+        while (wait) {
+            SDL_PumpEvents();
+        }
+    }
+    if (defaults) {
+        wait = true;
+        SDL_ShowOpenFileDialog(callback, nullptr, window, filters, 6, nullptr, 0);
+        while (wait) {
+            SDL_PumpEvents();
+        }
     }
     if (!SDL_SetWindowPosition(window, pos_x, pos_y)) {
         SDL_Log("Couldnt Move Window. '%s', Bailing Out, Goodbye!", SDL_GetError());
@@ -266,8 +278,12 @@ int main(int argc, char *argv[]) {
     SDL_Log("Created Window %dx%d at %dx%d", width, height, pos_x, pos_y);
     animation = IMG_LoadAnimation(chibi_path);
     if (animation == nullptr) {
-        SDL_Log("Chibi not found. '%s', Bailing Out, Goodbye!", SDL_GetError());
-        exit(1);
+        SDL_Log("Chibi not found. '%s', Asking user for file", SDL_GetError());
+        wait = true;
+        SDL_ShowOpenFileDialog(callback, nullptr, window, filters, 6, nullptr, 0);
+        while (wait) {
+            SDL_PumpEvents();
+        }
     }
     SDL_Log("Loaded '%s'", chibi_path);
     Frames = calloc(animation->count, sizeof(SDL_Texture));
@@ -278,7 +294,7 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
     bool quit = false;
     bool bordered = false;
-    int current_frame_idx = 0;
+    current_frame_idx = 0;
     int current_transparency_step = 0;
     unsigned int lastTime = 0, currentTime;
     aspect_ratio = (float) width / (float) height;
@@ -312,8 +328,13 @@ int main(int argc, char *argv[]) {
                     case SDL_EVENT_QUIT: quit = true;
                         break;
                     case SDL_EVENT_MOUSE_BUTTON_UP:
-                        if (event.button.clicks == 2 && event.button.button == SDL_BUTTON_LEFT)
+                        if (event.button.clicks == 2 && event.button.button == SDL_BUTTON_LEFT) {
+                            wait = true;
                             SDL_ShowOpenFileDialog(callback, nullptr, window, filters, 6, nullptr, 0);
+                            while (wait) {
+                                SDL_PumpEvents();
+                            }
+                        }
                         if (event.button.button == SDL_BUTTON_MIDDLE)
                             SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
                         if (event.button.button == SDL_BUTTON_RIGHT) {
