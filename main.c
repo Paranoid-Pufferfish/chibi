@@ -3,7 +3,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <unistd.h>
-
 FILE *config_file;
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -58,8 +57,9 @@ static void SDLCALL callback(void *userdata, const char *const*filelist, int fil
             SDL_SetTextureBlendMode(Frames[i],SDL_BLENDMODE_BLEND);
         }
         aspect_ratio = (float) animation->w / (float) animation->h;
+        SDL_Log("Aspect Ratio : %f", aspect_ratio);
         SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
-        SDL_SetWindowSize(window, SDL_min(animation->w, 200 * aspect_ratio), SDL_min(animation->h, 200));
+        SDL_SetWindowSize(window, animation->w, animation->h);
         SDL_SetWindowShape(window, animation->frames[0]);
         strcpy(chibi_path, *filelist);
         SDL_GetWindowSize(window, &width, &height);
@@ -246,6 +246,7 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
     } else {
+        defaults = false;
         if (!SDL_CreateWindowAndRenderer("Chibi", 200, 200,
                                          SDL_WINDOW_RESIZABLE | SDL_WINDOW_TRANSPARENT |
                                          SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY |
@@ -293,7 +294,7 @@ int main(int argc, char *argv[]) {
     current_frame_idx = 0;
     int current_transparency_step = 0;
     unsigned int lastTime = 0, currentTime;
-    aspect_ratio = (float) width / (float) height;
+    aspect_ratio = (float) animation->w / (float) animation->h;
     while (!quit) {
         SDL_RenderClear(renderer);
         if (transition == 1) {
@@ -331,8 +332,10 @@ int main(int argc, char *argv[]) {
                                 SDL_PumpEvents();
                             }
                         }
-                        if (event.button.button == SDL_BUTTON_MIDDLE)
+                        if (event.button.button == SDL_BUTTON_MIDDLE) {
+                            SDL_Log("Aspect Ratio : %f", aspect_ratio);
                             SDL_SetWindowAspectRatio(window, aspect_ratio, aspect_ratio);
+                        }
                         if (event.button.button == SDL_BUTTON_RIGHT) {
                             SDL_SetWindowBordered(window, !bordered);
                             bordered = !bordered;
