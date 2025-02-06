@@ -54,36 +54,44 @@ void parse(int argc, char **argv) {
                 errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
         }
     }
-    FILE *img = fopen(file, "r");
-    if (img == nullptr) {
-        printf("File not found");
-        exit(1);
-    }
-    fclose(img);
+
     char *p = pos;
     chibi.xpos = (int) strtol(strsep(&pos, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
-        fprintf(stderr, "Incorrect Argument : %s\n", p);
+        if (p[0] != '\0')
+            fprintf(stderr, "Incorrect Argument : %s\n", p);
         errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
     }
     p = pos;
     chibi.ypos = (int) strtol(strsep(&pos, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
-        fprintf(stderr, "Incorrect Argument : %s\n", p);
+        if (p[0] != '\0')
+            fprintf(stderr, "Incorrect Argument : %s\n", p);
         errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
     }
     p = size;
     chibi.w = (int) strtol(strsep(&size, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
-        fprintf(stderr, "Incorrect Argument : %s\n", p);
+        if (p[0] != '\0')
+            fprintf(stderr, "Incorrect Argument : %s\n", p);
         errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
     }
     p = size;
     chibi.h = (int) strtol(strsep(&size, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
-        fprintf(stderr, "Incorrect Argument : %s\n", p);
+        if (p[0] != '\0')
+            fprintf(stderr, "Incorrect Argument : %s\n", p);
         errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
     }
+    if (file[0] == '\0')
+        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+
+    FILE *img = fopen(file, "r");
+    if (img == nullptr) {
+        printf("File not found");
+        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+    }
+    fclose(img);
 }
 
 int main(int argc, char **argv) {
@@ -119,7 +127,7 @@ int main(int argc, char **argv) {
     unsigned int lastTime = 0, currentTime;
     int current_transparency_step = 0;
     while (!quit) {
-        SDL_SetWindowIcon(window,animation->frames[curridx]);
+        SDL_SetWindowIcon(window, animation->frames[curridx]);
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, frames[curridx], nullptr, nullptr);
         while (SDL_PollEvent(&event)) {
@@ -136,10 +144,10 @@ int main(int argc, char **argv) {
                     break;
                 case SDL_EVENT_WINDOW_MOUSE_ENTER:
                     current_transparency_step = 5;
-                break;
+                    break;
                 case SDL_EVENT_WINDOW_MOUSE_LEAVE:
                     current_transparency_step = -5;
-                break;
+                    break;
                 default:
                     break;
             }
