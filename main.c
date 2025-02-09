@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <err.h>
-#include <SDL/SDL3.h>
+#include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
 struct chibi_opts {
