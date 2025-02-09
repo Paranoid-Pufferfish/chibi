@@ -41,5 +41,10 @@ jobs:
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --parallel --clean-first --config ${{env.BUILD_TYPE}}
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v4
+      with:
+          name: dahlia-linux-static
+          path: dahlia/build/dahlia
 
 
