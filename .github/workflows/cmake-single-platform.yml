@@ -45,6 +45,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: dahlia-linux-static
-          path: dahlia/build/dahlia
+          path: build/dahlia
 
 
