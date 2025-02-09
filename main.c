@@ -3,8 +3,8 @@
 #include <getopt.h>
 #include <string.h>
 #include <err.h>
-#include "vendor/SDL/include/SDL3/SDL.h"
-#include "vendor/SDL_image/include/SDL3_image/SDL_image.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 struct chibi_opts {
     bool trans;
