@@ -21,7 +21,7 @@ IMG_Animation *animation;
 SDL_Texture **frames;
 
 void usage() {
-    errx(1, "usage: [-t|--transparency] [-f|--file path/to/image] [-p|--position numberxnumber] [-s|--size numberxnumber]");
+    errx(1, "usage: [-t|--transparency] [-f|--file path/to/image] [-p|--position <xpos>x<ypos>] [-s|--size <w>x<h>]");
 }
 
 void parse(int argc, char **argv) {
