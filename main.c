@@ -20,6 +20,9 @@ SDL_Renderer *renderer;
 IMG_Animation *animation;
 SDL_Texture **frames;
 
+void usage() {
+    errx(1, "usage: [-t|--transparency] [-f|--file path/to/image] [-p|--position numberxnumber] [-s|--size numberxnumber]");
+}
 
 void parse(int argc, char **argv) {
     /* options descriptor */
@@ -51,7 +54,7 @@ void parse(int argc, char **argv) {
                 chibi.file = file;
                 break;
             default:
-                errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+                usage();
         }
     }
 
@@ -60,36 +63,36 @@ void parse(int argc, char **argv) {
     if (p[0] == '\0' || *endptr != '\0') {
         if (p[0] != '\0')
             fprintf(stderr, "Incorrect Argument : %s\n", p);
-        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+        usage();
     }
     p = pos;
     chibi.ypos = (int) strtol(strsep(&pos, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
         if (p[0] != '\0')
             fprintf(stderr, "Incorrect Argument : %s\n", p);
-        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+        usage();
     }
     p = size;
     chibi.w = (int) strtol(strsep(&size, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
         if (p[0] != '\0')
             fprintf(stderr, "Incorrect Argument : %s\n", p);
-        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+        usage();
     }
     p = size;
     chibi.h = (int) strtol(strsep(&size, "x"), &endptr, 10);
     if (p[0] == '\0' || *endptr != '\0') {
         if (p[0] != '\0')
             fprintf(stderr, "Incorrect Argument : %s\n", p);
-        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+        usage();
     }
     if (file[0] == '\0')
-        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+        usage();
 
     FILE *img = fopen(file, "r");
     if (img == nullptr) {
         printf("File not found");
-        errx(1, "usage: [-t] [-f path/to/image] [-p numberxnumber] [-s numberxnumber]");
+        usage();
     }
     fclose(img);
 }
