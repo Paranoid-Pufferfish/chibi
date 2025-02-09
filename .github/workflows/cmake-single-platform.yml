@@ -47,5 +47,3 @@ jobs:
       with:
           name: dahlia-linux-static
           path: ${{github.workspace}}/build/dahlia
-
-
