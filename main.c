@@ -104,13 +104,11 @@ int main(int argc, char **argv) {
                                      SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_UTILITY |
                                      SDL_WINDOW_NOT_FOCUSABLE, &window,
                                      &renderer)) {
-        SDL_Log("Couldnt Create Window and Renderer. '%s', Bailing Out, Goodbye!", SDL_GetError());
+        SDL_Log("Couldn't Create Window and Renderer. '%s', Bailing Out, Goodbye!", SDL_GetError());
         exit(1);
     }
-    if (!SDL_SetWindowPosition(window, chibi.xpos, chibi.ypos)) {
-        SDL_Log("Couldnt Move Window. '%s', Bailing Out, Goodbye!", SDL_GetError());
-        exit(1);
-    }
+    if (!SDL_SetWindowPosition(window, chibi.xpos, chibi.ypos))
+        SDL_Log("Couldn't Move Window. '%s', Non-fatal error, continuing!", SDL_GetError());
     animation = IMG_LoadAnimation(chibi.file);
     if (animation == nullptr) {
         SDL_Log("%s is not a supported file. '%s', Bailing Out, Goodbye!", chibi.file, SDL_GetError());
